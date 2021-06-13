@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace The25thStudio.Util.Levels
 {
-    [CreateAssetMenu(fileName = "Levels 1", menuName = "The 25h Studio/Levels", order = 0)]
+    [CreateAssetMenu(fileName = "Levels 1", menuName = "The 25th Studio/Levels", order = 0)]
     public class Levels : ScriptableObject
     {
         [SerializeField] private string saveGameName = "game.dat";
