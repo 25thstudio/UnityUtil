@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +9,7 @@ using UnityEngine;
 namespace The25thStudio.Util.Levels
 {
     [CreateAssetMenu(fileName = "Levels 1", menuName = "The 25th Studio/Levels", order = 0)]
-    public class Levels : ScriptableObject
+    public class Levels : ScriptableObject, IEnumerable<Level>
     {
         [SerializeField] private string saveGameName = "game.dat";
         [SerializeField] private List<Level> levels;
@@ -33,7 +34,6 @@ namespace The25thStudio.Util.Levels
                 _index = index;
             }
         }
-        public IEnumerable<Level> LevelsList => levels;
         public bool HasMoreLevels => levels.Count > (_index + 1);
 
         public T CurrentLevel<T>() where T : Level => levels[_index] as T;
@@ -83,6 +83,16 @@ namespace The25thStudio.Util.Levels
         private string Path()
         {
             return $"{Application.persistentDataPath}/{saveGameName}";
+        }
+
+        public IEnumerator<Level> GetEnumerator()
+        {
+            return levels.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
