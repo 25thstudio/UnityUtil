@@ -5,11 +5,13 @@ namespace The25thStudio.Util.Levels
     [Serializable]
     public class LevelSaveState
     {
-        public LevelSaveState(bool pCompleted)
+        public LevelSaveState(Level level)
         {
-            Completed = pCompleted;
+            Completed = level.Completed;
+            Unlocked = level.Unlocked;
         }
 
         public bool Completed { get; }
+        public bool Unlocked { get; }
     }
 }

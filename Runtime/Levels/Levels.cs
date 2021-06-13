@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
@@ -14,11 +15,25 @@ namespace The25thStudio.Util.Levels
         [field: NonSerialized] private int _index;
 
 
-        private void Awake()
+        private void OnEnable()
         {
             _index = 0;
+
+            if (levels.Count > 0)
+            {
+                levels.First().Unlocked = true;
+            }
+            
         }
 
+        public void CurrentLevelIndex(int index)
+        {
+            if (index > 0 && index < levels.Count)
+            {
+                _index = index;
+            }
+        }
+        public IEnumerable<Level> LevelsList => levels;
         public bool HasMoreLevels => levels.Count > (_index + 1);
 
         public T CurrentLevel<T>() where T : Level => levels[_index] as T;
@@ -27,6 +42,8 @@ namespace The25thStudio.Util.Levels
         {
             if (!HasMoreLevels) return;
             _index++;
+            levels[_index].Unlocked = true;
+            Save();
         }
 
         public void Save()
