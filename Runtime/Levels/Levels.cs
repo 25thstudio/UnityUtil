@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace The25thStudio.Util.Levels
 {
@@ -13,37 +14,46 @@ namespace The25thStudio.Util.Levels
     {
         [SerializeField] private string saveGameName = "game.dat";
         [SerializeField] private List<Level> levels;
-        [field: NonSerialized] private int _index;
 
 
         private void OnEnable()
         {
-            _index = 0;
+            LevelIndex = 0;
 
-            if (levels.Count > 0)
+            if (levels != null && levels.Count > 0)
             {
-                levels.First().Unlocked = true;
+                UnlockLevel(levels.First(), 0);
             }
             
         }
 
-        public void CurrentLevelIndex(int index)
+        [field: NonSerialized]
+        public int LevelIndex { get; private set; }
+
+        public void UpdateLevelIndex(int index)
         {
-            if (index > 0 && index < levels.Count)
+            if (index >= 0 && index < levels.Count)
             {
-                _index = index;
+                LevelIndex = index;
             }
         }
-        public bool HasMoreLevels => levels.Count > (_index + 1);
+        public bool HasMoreLevels => levels.Count > (LevelIndex + 1);
 
-        public T CurrentLevel<T>() where T : Level => levels[_index] as T;
+        public T CurrentLevel<T>() where T : Level => levels[LevelIndex] as T;
 
-        public void NextLevel()
+        public bool NextLevel()
         {
-            if (!HasMoreLevels) return;
-            _index++;
-            levels[_index].Unlocked = true;
+            if (!HasMoreLevels) return false;
+            LevelIndex++;
+            UnlockLevel(levels[LevelIndex], LevelIndex);
             Save();
+            return true;
+        }
+
+        public void AddLevel(Level level)
+        {
+            levels ??= new List<Level>();
+            levels.Add(level);
         }
 
         public void Save()
@@ -80,11 +90,17 @@ namespace The25thStudio.Util.Levels
             stream.Close();
         }
 
+        private static void UnlockLevel(Level level, int index)
+        {
+            level.Unlocked = true;
+        }
         private string Path()
         {
             return $"{Application.persistentDataPath}/{saveGameName}";
         }
 
+        public int Count => levels.Count;
+        
         public IEnumerator<Level> GetEnumerator()
         {
             return levels.GetEnumerator();

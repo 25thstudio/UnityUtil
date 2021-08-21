@@ -31,6 +31,13 @@ namespace The25thStudio.Util.Numbers
         }
         
         public static implicit operator float(FloatVariable i) => i.Value;
+
+        public static implicit operator FloatVariable(float value)
+        {
+            var variable = ScriptableObject.CreateInstance<FloatVariable>();
+            variable.Value = value;
+            return variable;
+        }
         #endregion  
     }
 }
