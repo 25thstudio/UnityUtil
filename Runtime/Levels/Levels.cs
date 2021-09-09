@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace The25thStudio.Util.Levels
 {
@@ -20,15 +19,12 @@ namespace The25thStudio.Util.Levels
         {
             LevelIndex = 0;
 
-            if (levels != null && levels.Count > 0)
-            {
-                UnlockLevel(levels.First(), 0);
-            }
-            
+            if (levels == null || levels.Count <= 0) return;
+
+            UnlockLevel(levels.First(), 0);
         }
 
-        [field: NonSerialized]
-        public int LevelIndex { get; private set; }
+        [field: NonSerialized] public int LevelIndex { get; private set; }
 
         public void UpdateLevelIndex(int index)
         {
@@ -37,6 +33,7 @@ namespace The25thStudio.Util.Levels
                 LevelIndex = index;
             }
         }
+
         public bool HasMoreLevels => levels.Count > (LevelIndex + 1);
 
         public T CurrentLevel<T>() where T : Level => levels[LevelIndex] as T;
@@ -63,9 +60,11 @@ namespace The25thStudio.Util.Levels
             var stream = new FileStream(Path(), FileMode.Create);
 
             var data = new List<LevelSaveState>();
-            levels.ForEach(l => data.Add(l.SaveState()));
-
-
+            levels.ForEach(l =>
+            {
+                var state = l.SaveState();
+                data.Add(state);
+            });
             formatter.Serialize(stream, data);
             stream.Close();
         }
@@ -83,10 +82,10 @@ namespace The25thStudio.Util.Levels
                 {
                     if (i >= levels.Count) return;
 
-                    levels[i].LoadState(data[i]);
+                    var state = data[i];
+                    levels[i].LoadState(state);
                 }
             }
-
             stream.Close();
         }
 
@@ -94,13 +93,14 @@ namespace The25thStudio.Util.Levels
         {
             level.Unlocked = true;
         }
+
         private string Path()
         {
             return $"{Application.persistentDataPath}/{saveGameName}";
         }
 
         public int Count => levels.Count;
-        
+
         public IEnumerator<Level> GetEnumerator()
         {
             return levels.GetEnumerator();
