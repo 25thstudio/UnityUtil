@@ -1,6 +1,6 @@
 {
   "name": "com.the25thstudio.util",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "displayName": "The 25th Studio - Util Library",
   "description": "Unity util library with shared components",
   "unity": "2019.1",
@@ -13,5 +13,12 @@
     "email": "paulo.sigrist@gmail.com",
     "url": "https://github.com/25thstudio/UnityUtil"
   },
-  "type": "library"
+  "type": "library",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/25thstudio/UnityUtil.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/@25thstudio"
+  }
 }
