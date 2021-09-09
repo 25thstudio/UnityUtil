@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,42 +9,48 @@ using UnityEngine;
 namespace The25thStudio.Util.Levels
 {
     [CreateAssetMenu(fileName = "Levels 1", menuName = "The 25th Studio/Levels", order = 0)]
-    public class Levels : ScriptableObject
+    public class Levels : ScriptableObject, IEnumerable<Level>
     {
         [SerializeField] private string saveGameName = "game.dat";
         [SerializeField] private List<Level> levels;
-        [field: NonSerialized] private int _index;
 
 
         private void OnEnable()
         {
-            _index = 0;
+            LevelIndex = 0;
 
-            if (levels.Count > 0)
-            {
-                levels.First().Unlocked = true;
-            }
-            
+            if (levels == null || levels.Count <= 0) return;
+
+            UnlockLevel(levels.First(), 0);
         }
 
-        public void CurrentLevelIndex(int index)
+        [field: NonSerialized] public int LevelIndex { get; private set; }
+
+        public void UpdateLevelIndex(int index)
         {
-            if (index > 0 && index < levels.Count)
+            if (index >= 0 && index < levels.Count)
             {
-                _index = index;
+                LevelIndex = index;
             }
         }
-        public IEnumerable<Level> LevelsList => levels;
-        public bool HasMoreLevels => levels.Count > (_index + 1);
 
-        public T CurrentLevel<T>() where T : Level => levels[_index] as T;
+        public bool HasMoreLevels => levels.Count > (LevelIndex + 1);
 
-        public void NextLevel()
+        public T CurrentLevel<T>() where T : Level => levels[LevelIndex] as T;
+
+        public bool NextLevel()
         {
-            if (!HasMoreLevels) return;
-            _index++;
-            levels[_index].Unlocked = true;
+            if (!HasMoreLevels) return false;
+            LevelIndex++;
+            UnlockLevel(levels[LevelIndex], LevelIndex);
             Save();
+            return true;
+        }
+
+        public void AddLevel(Level level)
+        {
+            levels ??= new List<Level>();
+            levels.Add(level);
         }
 
         public void Save()
@@ -53,9 +60,11 @@ namespace The25thStudio.Util.Levels
             var stream = new FileStream(Path(), FileMode.Create);
 
             var data = new List<LevelSaveState>();
-            levels.ForEach(l => data.Add(l.SaveState()));
-
-
+            levels.ForEach(l =>
+            {
+                var state = l.SaveState();
+                data.Add(state);
+            });
             formatter.Serialize(stream, data);
             stream.Close();
         }
@@ -73,16 +82,33 @@ namespace The25thStudio.Util.Levels
                 {
                     if (i >= levels.Count) return;
 
-                    levels[i].LoadState(data[i]);
+                    var state = data[i];
+                    levels[i].LoadState(state);
                 }
             }
-
             stream.Close();
+        }
+
+        private static void UnlockLevel(Level level, int index)
+        {
+            level.Unlocked = true;
         }
 
         private string Path()
         {
             return $"{Application.persistentDataPath}/{saveGameName}";
+        }
+
+        public int Count => levels.Count;
+
+        public IEnumerator<Level> GetEnumerator()
+        {
+            return levels.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
